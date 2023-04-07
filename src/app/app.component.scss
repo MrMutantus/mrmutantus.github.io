@@ -2,16 +2,16 @@
   position: sticky;
   top: 0;
   z-index: 99;
-}
 
-.toolbar-spacer {
-  flex: 1 1 auto;
-}
-
-.mat-sidenav {
-  width: 200px;
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
 }
 
 .mat-sidenav-container {
   height: 93vh;
+
+  .mat-sidenav {
+    width: 200px;
+  }
 }
