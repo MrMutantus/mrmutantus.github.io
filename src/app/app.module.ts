@@ -5,6 +5,7 @@ import {AppComponent} from './app.component';
 import {HeaderComponent} from './header/header.component';
 import {FooterComponent} from './footer/footer.component';
 import {RouterTestingModule} from "@angular/router/testing";
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import {RouterTestingModule} from "@angular/router/testing";
   ],
   imports: [
     BrowserModule,
-    RouterTestingModule
+    RouterTestingModule,
+    BrowserAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
