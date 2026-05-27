@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { CartridgeCase, LabReport, ParsedReport, Scenario, ScenarioData } from './types';
+import type { CartridgeCase, LabReport, ParsedReport, Scenario, ScenarioData, StoredWeapon, Weapon } from './types';
 import { loadState, saveState } from './storage';
 import { EvidenceTable } from './components/EvidenceTable';
 import { EvidenceDetailModal } from './components/EvidenceDetailModal';
@@ -8,6 +8,7 @@ import { SummaryReportModal } from './components/SummaryReportModal';
 import { ReportList } from './components/ReportList';
 import { WeaponList } from './components/WeaponList';
 import { AddEvidenceModal } from './components/AddEvidenceModal';
+import { AddWeaponModal } from './components/AddWeaponModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { computeWeapons } from './weapons';
 import './App.css';
@@ -25,6 +26,9 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showAddEvidence, setShowAddEvidence] = useState(false);
+  const [showAddWeapon, setShowAddWeapon] = useState(false);
+  const [addHullForWeapon, setAddHullForWeapon] = useState<Weapon | null>(null);
+  const [confirmDeleteWeaponId, setConfirmDeleteWeaponId] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -38,13 +42,14 @@ export default function App() {
     [scenarios, activeScenarioId],
   );
 
-  const { cases, reports, weaponNotes, weapons } = useMemo(() => {
+  const { cases, reports, storedWeapons, weapons, unassignedCases } = useMemo(() => {
     const c = activeScenario?.data.cases ?? [];
     const r = activeScenario?.data.reports ?? [];
-    const wn = activeScenario?.data.weaponNotes ?? {};
-    return { cases: c, reports: r, weaponNotes: wn, weapons: computeWeapons(c, r, wn) };
+    const sw = activeScenario?.data.weapons ?? [];
+    const w = computeWeapons(sw, c, r);
+    const unassigned = c.filter(c => !c.weaponId);
+    return { cases: c, reports: r, storedWeapons: sw, weapons: w, unassignedCases: unassigned };
   }, [activeScenario]);
-  const hasUnlinkedEvidence = weapons.some(w => w.unlinkedEvidence.length > 0);
 
   const selectedCase = selectedCaseId ? (cases.find(c => c.id === selectedCaseId) ?? null) : null;
 
@@ -71,7 +76,7 @@ export default function App() {
     const scenario: Scenario = {
       id: crypto.randomUUID(),
       name,
-      data: { cases: [], reports: [], weaponNotes: {} },
+      data: { cases: [], reports: [], weapons: [] },
       createdAt: new Date().toISOString(),
     };
     persist([...scenarios, scenario], scenario.id, nextCounter + 1);
@@ -128,6 +133,7 @@ export default function App() {
   // Data handlers
   const handleImport = (reportId: string | undefined, parsed: ParsedReport, rawText: string) => {
     let newCases = [...cases];
+    let newWeapons = [...storedWeapons];
 
     const upsert = (id: string, weaponType: string) => {
       const existing = newCases.find(c => c.id === id);
@@ -153,36 +159,84 @@ export default function App() {
       rawText,
     };
 
-    persistActiveData({ cases: newCases, reports: [...reports, newReport], weaponNotes });
+    if (parsed.result === 'MATCH') {
+      const c1 = newCases.find(c => c.id === parsed.caseId1)!;
+      const c2 = newCases.find(c => c.id === parsed.caseId2)!;
+      const w1 = c1.weaponId, w2 = c2.weaponId;
+      if (w1 && !w2) {
+        newCases = newCases.map(c => c.id === c2.id ? { ...c, weaponId: w1 } : c);
+      } else if (!w1 && w2) {
+        newCases = newCases.map(c => c.id === c1.id ? { ...c, weaponId: w2 } : c);
+      } else if (w1 && w2 && w1 !== w2) {
+        newCases = newCases.map(c => c.weaponId === w2 ? { ...c, weaponId: w1 } : c);
+        newWeapons = newWeapons.filter(w => w.id !== w2);
+      }
+    }
+
+    persistActiveData({ cases: newCases, reports: [...reports, newReport], weapons: newWeapons });
   };
 
   const handleAddCase = (newCase: CartridgeCase) => {
-    persistActiveData({ cases: [...cases, newCase], reports, weaponNotes });
+    persistActiveData({ cases: [...cases, newCase], reports, weapons: storedWeapons });
   };
 
   const handleSaveCase = (updated: CartridgeCase) => {
-    persistActiveData({ cases: cases.map(c => c.id === updated.id ? updated : c), reports, weaponNotes });
+    persistActiveData({ cases: cases.map(c => c.id === updated.id ? updated : c), reports, weapons: storedWeapons });
   };
 
-  const handleSaveWeaponNotes = (weaponId: string, notes: string) => {
-    persistActiveData({ cases, reports, weaponNotes: { ...weaponNotes, [weaponId]: notes } });
+  const handleDeleteCase = (caseId: string) => {
+    persistActiveData({
+      cases: cases.filter(c => c.id !== caseId),
+      reports: reports.filter(r => r.caseId1 !== caseId && r.caseId2 !== caseId),
+      weapons: storedWeapons,
+    });
+    setSelectedCaseId(null);
   };
 
-  const handleSaveWeaponSerial = (weaponId: string, serialNumber: string) => {
-    const weapon = weapons.find(w => w.id === weaponId);
-    if (!weapon) return;
-    const caseIds = new Set(weapon.cases.map(c => c.id));
-    persistActiveData({ cases: cases.map(c => caseIds.has(c.id) ? { ...c, serialNumber } : c), reports, weaponNotes });
+  const handleUpdateCaseId = (oldId: string, updated: CartridgeCase) => {
+    persistActiveData({
+      cases: cases.map(c => c.id === oldId ? updated : c),
+      reports: reports.map(r => ({
+        ...r,
+        caseId1: r.caseId1 === oldId ? updated.id : r.caseId1,
+        caseId2: r.caseId2 === oldId ? updated.id : r.caseId2,
+      })),
+      weapons: storedWeapons,
+    });
+  };
+
+  const handleAddWeapon = (sw: StoredWeapon) => {
+    persistActiveData({ cases, reports, weapons: [...storedWeapons, sw] });
+    setShowAddWeapon(false);
+  };
+
+  const handleSaveWeapon = (updated: StoredWeapon) => {
+    persistActiveData({ cases, reports, weapons: storedWeapons.map(w => w.id === updated.id ? updated : w) });
+  };
+
+  const handleDeleteWeapon = (weaponId: string) => {
+    const weaponCaseIds = new Set(cases.filter(c => c.weaponId === weaponId).map(c => c.id));
+    persistActiveData({
+      cases: cases.filter(c => c.weaponId !== weaponId),
+      reports: reports.filter(r => !weaponCaseIds.has(r.caseId1) && !weaponCaseIds.has(r.caseId2)),
+      weapons: storedWeapons.filter(w => w.id !== weaponId),
+    });
+    setConfirmDeleteWeaponId(null);
+  };
+
+  const handleSaveReportId = (reportInternalId: string, reportId: string | undefined) => {
+    persistActiveData({ cases, reports: reports.map(r => r.id === reportInternalId ? { ...r, reportId } : r), weapons: storedWeapons });
   };
 
   const confirmScenarioName = scenarios.find(s => s.id === confirmDeleteId)?.name ?? '';
+  const hasUnassigned = unassignedCases.length > 0;
 
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-title">
-          <span className="header-heading">Forensics Tracker</span>
-          <span className="header-sub">Cartridge Case Evidence</span>
+          <span className="header-heading">Forensics Tracker <span className="header-version">v{__APP_VERSION__}</span></span>
+          <span className="header-sub">Cartridge Case Hulls</span>
         </div>
       </header>
 
@@ -227,11 +281,14 @@ export default function App() {
         </div>
         <button className="scenario-add-btn" onClick={handleAddScenario} title="Add scenario">+</button>
         <div className="scenario-bar-actions">
+          <button className="btn-secondary" onClick={() => { if (!activeScenario) handleAddScenario(); setShowAddWeapon(true); }}>
+            Add Weapon
+          </button>
           <button className="btn-secondary" onClick={() => { if (!activeScenario) handleAddScenario(); setShowAddEvidence(true); }}>
-            Add Evidence
+            Add Hull
           </button>
           <button className="btn-secondary" onClick={() => { if (!activeScenario) handleAddScenario(); setShowImport(true); }}>
-            Import Report
+            Add Report
           </button>
           <button className="btn-primary" disabled={!activeScenario} onClick={() => setShowSummary(true)}>
             Generate Report
@@ -246,7 +303,7 @@ export default function App() {
               className={`sidenav-item${tab === 'weapons' ? ' sidenav-active' : ''}`}
               onClick={() => setTab('weapons')}
             >
-              Weapons ({weapons.length}){hasUnlinkedEvidence && <span className="sidenav-unlinked-dot" title="Some weapons have unlinked evidence">⚠</span>}
+              Weapons ({weapons.length}){hasUnassigned && <span className="sidenav-unlinked-dot" title="Some hulls are unassigned">⚠</span>}
             </button>
             <button
               className={`sidenav-item${tab === 'reports' ? ' sidenav-active' : ''}`}
@@ -258,16 +315,24 @@ export default function App() {
               className={`sidenav-item${tab === 'evidence' ? ' sidenav-active' : ''}`}
               onClick={() => setTab('evidence')}
             >
-              Evidence ({cases.length})
+              Hulls ({cases.length})
             </button>
           </nav>
           <main className="app-main">
             {tab === 'weapons' && (
-              <WeaponList weapons={weapons} onSaveWeaponNotes={handleSaveWeaponNotes} onSaveWeaponSerial={handleSaveWeaponSerial} />
+              <>
+                <WeaponList
+                  weapons={weapons}
+                  unassignedCases={unassignedCases}
+                  onSaveWeapon={handleSaveWeapon}
+                  onAddHull={setAddHullForWeapon}
+                  onDeleteWeapon={id => setConfirmDeleteWeaponId(id)}
+                />
+              </>
             )}
-            {tab === 'reports' && <ReportList reports={reports} />}
+            {tab === 'reports' && <ReportList reports={reports} onSaveReportId={handleSaveReportId} />}
             {tab === 'evidence' && (
-              <EvidenceTable cases={cases} reports={reports} onSelect={setSelectedCaseId} />
+              <EvidenceTable cases={cases} reports={reports} weapons={storedWeapons} onSelect={setSelectedCaseId} />
             )}
           </main>
         </div>
@@ -276,11 +341,14 @@ export default function App() {
           <p className="no-scenario-title">No scenarios yet</p>
           <p className="no-scenario-sub">Create a scenario to get started</p>
           <div className="no-scenario-actions">
+            <button className="btn-secondary" onClick={() => { handleAddScenario(); setShowAddWeapon(true); }}>
+              Add Weapon
+            </button>
             <button className="btn-secondary" onClick={() => { handleAddScenario(); setShowAddEvidence(true); }}>
-              Add Evidence
+              Add Hull
             </button>
             <button className="btn-secondary" onClick={() => { handleAddScenario(); setShowImport(true); }}>
-              Import Report
+              Add Report
             </button>
             <button className="btn-primary" onClick={handleAddScenario}>
               New Scenario
@@ -297,6 +365,24 @@ export default function App() {
         />
       )}
 
+      {showAddWeapon && (
+        <AddWeaponModal
+          onAdd={handleAddWeapon}
+          onClose={() => setShowAddWeapon(false)}
+        />
+      )}
+
+      {addHullForWeapon && (
+        <AddEvidenceModal
+          cases={cases}
+          initialWeaponId={addHullForWeapon.id}
+          initialWeaponType={addHullForWeapon.weaponType}
+          initialSerialNumber={addHullForWeapon.serialNumber}
+          onAdd={c => { handleAddCase(c); setAddHullForWeapon(null); }}
+          onClose={() => setAddHullForWeapon(null)}
+        />
+      )}
+
       {showImport && (
         <ImportReportModal onImport={handleImport} onClose={() => setShowImport(false)} />
       )}
@@ -308,19 +394,32 @@ export default function App() {
       {selectedCase && (
         <EvidenceDetailModal
           caseItem={selectedCase}
+          cases={cases}
           reports={reports}
+          weapons={storedWeapons}
           onSave={handleSaveCase}
+          onDelete={() => handleDeleteCase(selectedCase.id)}
+          onUpdateId={handleUpdateCaseId}
           onClose={() => setSelectedCaseId(null)}
         />
       )}
 
       {confirmDeleteId && (
         <ConfirmModal
-          message={`Delete scenario "${confirmScenarioName}"? All evidence and reports in this scenario will be permanently lost.`}
+          message={`Delete scenario "${confirmScenarioName}"? All hulls and reports in this scenario will be permanently lost.`}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setConfirmDeleteId(null)}
         />
       )}
+
+      {confirmDeleteWeaponId && (
+        <ConfirmModal
+          message="Delete this weapon and all its hulls? Their reports will also be removed. This cannot be undone."
+          onConfirm={() => handleDeleteWeapon(confirmDeleteWeaponId)}
+          onCancel={() => setConfirmDeleteWeaponId(null)}
+        />
+      )}
+
     </div>
   );
 }

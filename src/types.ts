@@ -1,7 +1,16 @@
 export type MatchResult = 'MATCH' | 'NO_MATCH' | 'DIFFERENT_WEAPON';
 
+export interface StoredWeapon {
+  id: string;
+  weaponType: string;
+  serialNumber: string;
+  notes: string;
+  suspect?: string;
+}
+
 export interface CartridgeCase {
   id: string;
+  weaponId?: string;
   weaponType: string;
   serialNumber: string;
   notes: string;
@@ -23,7 +32,7 @@ export interface LabReport {
 export interface ScenarioData {
   cases: CartridgeCase[];
   reports: LabReport[];
-  weaponNotes: Record<string, string>;
+  weapons: StoredWeapon[];
 }
 
 export interface Scenario {
@@ -44,9 +53,9 @@ export interface Weapon {
   serialNumber: string;
   weaponType: string;
   notes: string;
+  suspect?: string;
   cases: CartridgeCase[];
   reports: LabReport[];
-  unlinkedEvidence: CartridgeCase[];
 }
 
 export interface ParsedReport {

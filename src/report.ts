@@ -32,6 +32,7 @@ export function generateReport(weapons: Weapon[]): string {
     lines.push(label);
     lines.push(`  Serial:  ${w.serialNumber || '(none)'}`);
     lines.push(`  Type:    ${w.weaponType || '(none)'}`);
+    if (w.suspect) lines.push(`  Suspect: ${w.suspect}`);
     lines.push(`  Casings: ${w.cases.map(c => c.id).join(', ')}`);
     lines.push(`  Status:  ${status}`);
     lines.push('');

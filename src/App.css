@@ -352,6 +352,26 @@
   background: var(--code-bg);
 }
 
+.btn-danger {
+  padding: 8px 16px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-danger:hover {
+  background: var(--accent-bg);
+}
+
+.modal-footer-left {
+  margin-right: auto;
+}
+
 .btn-close {
   padding: 4px 8px;
   border: none;
@@ -469,6 +489,99 @@ textarea:focus {
 .optional {
   font-weight: normal;
   color: var(--text);
+}
+
+/* Evidence ID inline edit (modal header) */
+.id-edit-input {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 2px 6px;
+  width: 130px;
+}
+
+.id-edit-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Report list inline ID edit */
+.report-id-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.report-id-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+  padding: 2px 4px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.report-card-header:hover .report-id-edit-btn {
+  opacity: 1;
+}
+
+.report-id-edit-btn:hover {
+  background: var(--border);
+  color: var(--text-h);
+}
+
+.report-id-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.report-id-input {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 2px 6px;
+  width: 110px;
+}
+
+.report-id-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.report-id-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: var(--text-h);
+  transition: background 0.15s;
+}
+
+.report-id-btn:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.report-id-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.report-id-error {
+  font-size: 11px;
 }
 
 /* Parse preview */
@@ -818,6 +931,110 @@ textarea:focus {
   color: #b7791f;
 }
 
+.weapon-card-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.weapon-suspect-inline {
+  color: var(--text);
+}
+
+.weapon-add-hull-action {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.weapon-field-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.weapon-field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.weapon-type-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weapon-edit-panel {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weapon-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.weapon-card-unassigned {
+  border-color: #b7791f;
+  opacity: 0.85;
+}
+
+.weapon-card-header-unassigned {
+  cursor: default;
+  background: var(--surface);
+}
+
+.weapon-notes-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.detail-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 60px;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
 /* Summary report */
 .report-output {
   width: 100%;
@@ -827,4 +1044,11 @@ textarea:focus {
   box-sizing: border-box;
   background: var(--code-bg);
   color: var(--text-h);
+}
+
+.header-version {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: 0;
 }

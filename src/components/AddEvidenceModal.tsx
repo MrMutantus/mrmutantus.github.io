@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import type { CartridgeCase } from '../types';
+import knownWeaponTypes from '../weaponTypes.json';
 
 const CASE_ID_RE = /^#[0-9a-f]{7}$/i;
 const SERIAL_RE = /^\d{0,16}$/;
 
 interface Props {
   cases: CartridgeCase[];
+  initialWeaponId?: string;
+  initialWeaponType?: string;
+  initialSerialNumber?: string;
   onAdd: (newCase: CartridgeCase) => void;
   onClose: () => void;
 }
 
-export function AddEvidenceModal({ cases, onAdd, onClose }: Props) {
+export function AddEvidenceModal({ cases, initialWeaponId, initialWeaponType, initialSerialNumber, onAdd, onClose }: Props) {
   const [id, setId] = useState('');
-  const [weaponType, setWeaponType] = useState('');
-  const [serialNumber, setSerialNumber] = useState('');
+  const [weaponType, setWeaponType] = useState(initialWeaponType ?? '');
+  const [serialNumber, setSerialNumber] = useState(initialSerialNumber ?? '');
   const [notes, setNotes] = useState('');
   const [idError, setIdError] = useState('');
   const [serialError, setSerialError] = useState('');
@@ -43,6 +47,7 @@ export function AddEvidenceModal({ cases, onAdd, onClose }: Props) {
     if (!isValid) return;
     onAdd({
       id: id.toLowerCase(),
+      weaponId: initialWeaponId,
       weaponType,
       serialNumber,
       notes,
@@ -54,13 +59,13 @@ export function AddEvidenceModal({ cases, onAdd, onClose }: Props) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Add Evidence</h2>
+          <h2>Add Hull</h2>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">
           <label>
-            Evidence ID
+            Hull ID
             <input
               value={id}
               onChange={e => handleIdChange(e.target.value)}
@@ -71,27 +76,45 @@ export function AddEvidenceModal({ cases, onAdd, onClose }: Props) {
             {idError && <span className="field-error">{idError}</span>}
           </label>
 
-          <label>
-            Weapon Type <span className="optional">(optional)</span>
-            <input
-              value={weaponType}
-              onChange={e => setWeaponType(e.target.value)}
-              placeholder="e.g. 9x19mm 92fs"
-            />
-          </label>
-
-          <label>
-            Serial Number <span className="optional">(optional)</span>
-            <input
-              value={serialNumber}
-              onChange={e => handleSerialChange(e.target.value)}
-              placeholder="0000000000000000"
-              inputMode="numeric"
-              maxLength={16}
-              className={serialError ? 'input-error' : ''}
-            />
-            {serialError && <span className="field-error">{serialError}</span>}
-          </label>
+          {initialWeaponId ? (
+            <>
+              <div className="weapon-field-readonly">
+                <span className="weapon-field-label">Weapon Type</span>
+                <span>{weaponType || <span className="unknown">—</span>}</span>
+              </div>
+              <div className="weapon-field-readonly">
+                <span className="weapon-field-label">Serial Number</span>
+                <span>{serialNumber || <span className="unknown">—</span>}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <datalist id="weapon-types">
+                {knownWeaponTypes.map(t => <option key={t} value={t} />)}
+              </datalist>
+              <label>
+                Weapon Type <span className="optional">(optional)</span>
+                <input
+                  list="weapon-types"
+                  value={weaponType}
+                  onChange={e => setWeaponType(e.target.value)}
+                  placeholder="e.g. 9x19mm 92fs"
+                />
+              </label>
+              <label>
+                Serial Number <span className="optional">(optional)</span>
+                <input
+                  value={serialNumber}
+                  onChange={e => handleSerialChange(e.target.value)}
+                  placeholder="0000000000000000"
+                  inputMode="numeric"
+                  maxLength={16}
+                  className={serialError ? 'input-error' : ''}
+                />
+                {serialError && <span className="field-error">{serialError}</span>}
+              </label>
+            </>
+          )}
 
           <label>
             Notes <span className="optional">(optional)</span>
@@ -102,7 +125,7 @@ export function AddEvidenceModal({ cases, onAdd, onClose }: Props) {
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn-primary" onClick={handleConfirm} disabled={!isValid}>
-            Add Evidence
+            Add Hull
           </button>
         </div>
       </div>

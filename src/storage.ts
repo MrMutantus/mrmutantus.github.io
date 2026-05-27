@@ -21,14 +21,18 @@ export function loadState(): RootState {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (!isRootState(parsed)) return { ...EMPTY };
-      const scenarios = (parsed.scenarios ?? []).map(s => ({
+      const scenarios = (parsed.scenarios ?? []).map((s) => ({
         ...s,
         data: {
-          ...s.data,
+          cases: (s.data?.cases ?? []).map((c) => ({
+            ...c,
+            weaponId: c.weaponId,
+          })),
           reports: ((s.data?.reports ?? []) as StoredReport[]).map(r => ({
             ...r,
             result: r.result ?? (r.matched ? 'MATCH' : 'NO_MATCH'),
           })),
+          weapons: s.data?.weapons ?? [],
         },
       }));
       return {
