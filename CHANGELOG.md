@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.0...v1.0.1) (2026-05-27)
+
+
+### Bug Fixes
+
+* add @semantic-release/npm to update package.json version on release ([b111f69](https://github.com/MrMutantus/mrmutantus.github.io/commit/b111f6960739a01cba8246f7c1cb9e61426f6f60))
+
 # 1.0.0 (2026-05-27)
 
 
