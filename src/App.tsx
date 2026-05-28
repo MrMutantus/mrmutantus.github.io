@@ -170,6 +170,33 @@ export default function App() {
       } else if (w1 && w2 && w1 !== w2) {
         newCases = newCases.map(c => c.weaponId === w2 ? { ...c, weaponId: w1 } : c);
         newWeapons = newWeapons.filter(w => w.id !== w2);
+      } else if (!w1 && !w2) {
+        const newWeapon: StoredWeapon = {
+          id: crypto.randomUUID(),
+          weaponType: parsed.weaponType1 || parsed.weaponType2,
+          serialNumber: '',
+          notes: '',
+        };
+        newWeapons = [...newWeapons, newWeapon];
+        newCases = newCases.map(c =>
+          c.id === c1.id || c.id === c2.id ? { ...c, weaponId: newWeapon.id } : c,
+        );
+      }
+    }
+
+    for (const [caseId, weaponType] of [
+      [parsed.caseId1, parsed.weaponType1],
+      [parsed.caseId2, parsed.weaponType2],
+    ] as [string, string][]) {
+      if (!newCases.find(c => c.id === caseId)?.weaponId) {
+        const newWeapon: StoredWeapon = {
+          id: crypto.randomUUID(),
+          weaponType,
+          serialNumber: '',
+          notes: '',
+        };
+        newWeapons = [...newWeapons, newWeapon];
+        newCases = newCases.map(c => c.id === caseId ? { ...c, weaponId: newWeapon.id } : c);
       }
     }
 
