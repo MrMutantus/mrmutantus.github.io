@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.1...v1.0.2) (2026-05-28)
+
+
+### Bug Fixes
+
+* improve weapon linking and creation logic ([0609b2d](https://github.com/MrMutantus/mrmutantus.github.io/commit/0609b2d8d058a5b279c34fa0fec55cbc5a77b27d))
+
 ## [1.0.1](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.0...v1.0.1) (2026-05-27)
 
 
