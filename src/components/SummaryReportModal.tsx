@@ -17,9 +17,8 @@ export function SummaryReportModal({ weapons, onClose }: Props) {
     return () => clearTimeout(id);
   }, [copied]);
 
-  const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
+  const handleCopy = useCallback(() => {
+    void navigator.clipboard.writeText(text).then(() => setCopied(true));
   }, [text]);
 
   return (

@@ -13,10 +13,10 @@ export function parseLabReport(text: string): ParsedReport | null {
 
   for (const line of lines) {
     if (line.includes('Probennummer:')) {
-      const ids = line.match(CASE_ID_RE);
-      if (ids && ids.length >= 2) {
-        caseId1 = ids[0].toLowerCase();
-        caseId2 = ids[1].toLowerCase();
+      const [first, second] = line.match(CASE_ID_RE) ?? [];
+      if (first && second) {
+        caseId1 = first.toLowerCase();
+        caseId2 = second.toLowerCase();
       }
     } else if (line.includes('Hülse 1:')) {
       weaponType1 = line.replace('Hülse 1:', '').replace(/ Hülse$/, '').trim();

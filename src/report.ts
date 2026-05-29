@@ -16,10 +16,9 @@ export function generateReport(weapons: Weapon[]): string {
       reportByPair.set(key, r.result);
     }
 
-    const pairs: [string, string][] = [];
-    for (let i = 0; i < w.cases.length; i++)
-      for (let j = i + 1; j < w.cases.length; j++)
-        pairs.push([w.cases[i].id, w.cases[j].id]);
+    const pairs: [string, string][] = w.cases.flatMap((ci, i) =>
+      w.cases.slice(i + 1).map((cj): [string, string] => [ci.id, cj.id]),
+    );
 
     const unanalyzed = pairs.filter(([a, b]) => !reportByPair.has([a, b].sort().join('|')));
     const status =

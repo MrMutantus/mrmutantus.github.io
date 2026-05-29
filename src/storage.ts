@@ -19,7 +19,7 @@ export function loadState(): RootState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
+      const parsed: unknown = JSON.parse(raw);
       if (!isRootState(parsed)) return { ...EMPTY };
       const scenarios = (parsed.scenarios ?? []).map((s) => ({
         ...s,
