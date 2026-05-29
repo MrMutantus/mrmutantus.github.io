@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CartridgeCase, LabReport, ParsedReport, Scenario, ScenarioData, StoredWeapon } from '../types';
+import type { CartridgeCase, ParsedReport, Scenario, ScenarioData, StoredWeapon } from '../types';
 import { loadState, saveState } from '../storage';
-import { computeWeapons } from '../weapons';
+import { applyImportToScenarioData, computeWeapons } from '../weapons';
+
+const initial = loadState();
 
 export function useForensicsData() {
-  const [scenarios, setScenarios] = useState<Scenario[]>(() => loadState().scenarios);
-  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(() => loadState().activeScenarioId);
-  const [nextCounter, setNextCounter] = useState<number>(() => loadState().nextCounter);
+  const [scenarios, setScenarios] = useState<Scenario[]>(initial.state.scenarios);
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(initial.state.activeScenarioId);
+  const [nextCounter, setNextCounter] = useState<number>(initial.state.nextCounter);
 
   const tabScrollRef = useRef<HTMLDivElement>(null);
 
@@ -79,75 +81,13 @@ export function useForensicsData() {
   }, [activeScenarioId, persist, scenarios]);
 
   const importReport = useCallback((reportId: string | undefined, parsed: ParsedReport, rawText: string) => {
-    let newCases = [...cases];
-    let newWeapons = [...storedWeapons];
-
-    const upsert = (id: string, weaponType: string) => {
-      const existing = newCases.find(c => c.id === id);
-      if (!existing) {
-        newCases.push({ id, weaponType, serialNumber: '', notes: '', createdAt: new Date().toISOString() });
-      } else if (weaponType && existing.weaponType !== weaponType) {
-        newCases = newCases.map(c => c.id === id ? { ...c, weaponType } : c);
-      }
-    };
-
-    upsert(parsed.caseId1, parsed.weaponType1);
-    upsert(parsed.caseId2, parsed.weaponType2);
-
-    const newReport: LabReport = {
-      id: crypto.randomUUID(),
-      reportId,
-      caseId1: parsed.caseId1,
-      caseId2: parsed.caseId2,
-      weaponType1: parsed.weaponType1,
-      weaponType2: parsed.weaponType2,
-      result: parsed.result,
-      importedAt: new Date().toISOString(),
+    const next = applyImportToScenarioData(
+      { cases, reports, weapons: storedWeapons },
+      parsed,
       rawText,
-    };
-
-    if (parsed.result === 'MATCH') {
-      const c1 = newCases.find(c => c.id === parsed.caseId1)!;
-      const c2 = newCases.find(c => c.id === parsed.caseId2)!;
-      const w1 = c1.weaponId, w2 = c2.weaponId;
-      if (w1 && !w2) {
-        newCases = newCases.map(c => c.id === c2.id ? { ...c, weaponId: w1 } : c);
-      } else if (!w1 && w2) {
-        newCases = newCases.map(c => c.id === c1.id ? { ...c, weaponId: w2 } : c);
-      } else if (w1 && w2 && w1 !== w2) {
-        newCases = newCases.map(c => c.weaponId === w2 ? { ...c, weaponId: w1 } : c);
-        newWeapons = newWeapons.filter(w => w.id !== w2);
-      } else if (!w1 && !w2) {
-        const newWeapon: StoredWeapon = {
-          id: crypto.randomUUID(),
-          weaponType: parsed.weaponType1 || parsed.weaponType2,
-          serialNumber: '',
-          notes: '',
-        };
-        newWeapons = [...newWeapons, newWeapon];
-        newCases = newCases.map(c =>
-          c.id === c1.id || c.id === c2.id ? { ...c, weaponId: newWeapon.id } : c,
-        );
-      }
-    }
-
-    for (const [caseId, weaponType] of [
-      [parsed.caseId1, parsed.weaponType1],
-      [parsed.caseId2, parsed.weaponType2],
-    ] as [string, string][]) {
-      if (!newCases.find(c => c.id === caseId)?.weaponId) {
-        const newWeapon: StoredWeapon = {
-          id: crypto.randomUUID(),
-          weaponType,
-          serialNumber: '',
-          notes: '',
-        };
-        newWeapons = [...newWeapons, newWeapon];
-        newCases = newCases.map(c => c.id === caseId ? { ...c, weaponId: newWeapon.id } : c);
-      }
-    }
-
-    persistActiveData({ cases: newCases, reports: [...reports, newReport], weapons: newWeapons });
+      reportId,
+    );
+    persistActiveData(next);
   }, [cases, persistActiveData, reports, storedWeapons]);
 
   const addCase = useCallback((newCase: CartridgeCase) => {

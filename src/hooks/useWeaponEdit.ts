@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { StoredWeapon, Weapon } from '../types';
-
-const SERIAL_RE = /^\d{0,16}$/;
+import { SERIAL_PATTERN } from '../patterns';
 
 export function useWeaponEdit(onSaveWeapon: (updated: StoredWeapon) => void) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -16,7 +15,7 @@ export function useWeaponEdit(onSaveWeapon: (updated: StoredWeapon) => void) {
   }, []);
 
   const handleSerialChange = useCallback((val: string) => {
-    if (!SERIAL_RE.test(val)) return;
+    if (!SERIAL_PATTERN.test(val)) return;
     setDraft(d => d ? { ...d, serialNumber: val } : d);
     setSerialError(val.length > 0 && val.length < 16 ? `${val.length}/16 digits` : '');
   }, []);

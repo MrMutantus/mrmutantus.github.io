@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import type { CartridgeCase } from '../types';
+import { HEX_ID_PATTERN, SERIAL_PATTERN } from '../patterns';
 import knownWeaponTypes from '../weaponTypes.json';
-
-const CASE_ID_RE = /^#[0-9a-f]{7}$/i;
-const SERIAL_RE = /^\d{0,16}$/;
 
 interface Props {
   cases: CartridgeCase[];
@@ -26,7 +24,7 @@ export function AddEvidenceModal({ cases, initialWeaponId, initialWeaponType, in
     setId(val);
     if (!val) {
       setIdError('');
-    } else if (!CASE_ID_RE.test(val)) {
+    } else if (!HEX_ID_PATTERN.test(val)) {
       setIdError('Format: #xxxxxxx (7 hex chars)');
     } else if (cases.find(c => c.id.toLowerCase() === val.toLowerCase())) {
       setIdError('ID already exists');
@@ -36,7 +34,7 @@ export function AddEvidenceModal({ cases, initialWeaponId, initialWeaponType, in
   };
 
   const handleSerialChange = (val: string) => {
-    if (!SERIAL_RE.test(val)) return;
+    if (!SERIAL_PATTERN.test(val)) return;
     setSerialNumber(val);
     setSerialError(val.length > 0 && val.length < 16 ? `${val.length}/16 digits` : '');
   };

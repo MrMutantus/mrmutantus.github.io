@@ -1,12 +1,11 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import type { LabReport } from '../types';
+import { HEX_ID_PATTERN } from '../patterns';
 
 interface Props {
   reports: LabReport[];
   onSaveReportId: (id: string, reportId: string | undefined) => void;
 }
-
-const REPORT_ID_RE = /^#[0-9a-f]{7}$/i;
 
 export const ReportList = memo(function ReportList({ reports, onSaveReportId }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -36,7 +35,7 @@ export const ReportList = memo(function ReportList({ reports, onSaveReportId }: 
 
   const handleDraftChange = useCallback((val: string) => {
     setDraft(val);
-    setDraftError(val && !REPORT_ID_RE.test(val.trim()) ? 'Format: #xxxxxxx (7 hex chars)' : '');
+    setDraftError(val && !HEX_ID_PATTERN.test(val.trim()) ? 'Format: #xxxxxxx (7 hex chars)' : '');
   }, []);
 
   const commitEdit = useCallback(() => {

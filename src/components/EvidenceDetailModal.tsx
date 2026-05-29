@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CartridgeCase, LabReport, StoredWeapon } from '../types';
+import { HEX_ID_PATTERN, SERIAL_PATTERN } from '../patterns';
 import knownWeaponTypes from '../weaponTypes.json';
 
 interface Props {
@@ -12,9 +13,6 @@ interface Props {
   onUpdateId: (oldId: string, updated: CartridgeCase) => void;
   onClose: () => void;
 }
-
-const SERIAL_RE = /^\d{0,16}$/;
-const CASE_ID_RE = /^#[0-9a-f]{7}$/i;
 
 export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave, onDelete, onUpdateId, onClose }: Props) {
   const assignedWeapon = caseItem.weaponId ? weapons.find(w => w.id === caseItem.weaponId) : undefined;
@@ -29,7 +27,7 @@ export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave,
   const canEditId = linked.length === 0;
 
   const handleSerialChange = (val: string) => {
-    if (!SERIAL_RE.test(val)) return;
+    if (!SERIAL_PATTERN.test(val)) return;
     setSerialNumber(val);
     setSerialError(val.length > 0 && val.length < 16 ? `${val.length}/16 digits` : '');
   };
@@ -37,7 +35,7 @@ export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave,
   const handleIdChange = (val: string) => {
     setIdDraft(val);
     const trimmed = val.trim().toLowerCase();
-    if (!CASE_ID_RE.test(trimmed)) {
+    if (!HEX_ID_PATTERN.test(trimmed)) {
       setIdError('Format: #xxxxxxx (7 hex chars)');
     } else if (trimmed !== caseItem.id && cases.some(c => c.id === trimmed)) {
       setIdError('ID already in use');

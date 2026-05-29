@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { parseLabReport } from '../parser';
 import type { ParsedReport } from '../types';
-
-const REPORT_ID_RE = /^#[0-9a-f]{7}$/i;
+import { HEX_ID_PATTERN } from '../patterns';
 
 interface Props {
   onImport: (reportId: string | undefined, parsed: ParsedReport, rawText: string) => void;
@@ -18,7 +17,7 @@ export function ImportReportModal({ onImport, onClose }: Props) {
 
   const handleReportIdChange = (val: string) => {
     setReportId(val);
-    setReportIdError(val && !REPORT_ID_RE.test(val) ? 'Format: #xxxxxxx (7 hex chars)' : '');
+    setReportIdError(val && !HEX_ID_PATTERN.test(val) ? 'Format: #xxxxxxx (7 hex chars)' : '');
   };
 
   const handleConfirm = () => {

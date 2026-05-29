@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import type { StoredWeapon } from '../types';
+import { SERIAL_PATTERN } from '../patterns';
 import knownWeaponTypes from '../weaponTypes.json';
-
-const SERIAL_RE = /^\d{0,16}$/;
 
 interface Props {
   onAdd: (w: StoredWeapon) => void;
@@ -17,7 +16,7 @@ export function AddWeaponModal({ onAdd, onClose }: Props) {
   const [serialError, setSerialError] = useState('');
 
   const handleSerialChange = (val: string) => {
-    if (!SERIAL_RE.test(val)) return;
+    if (!SERIAL_PATTERN.test(val)) return;
     setSerialNumber(val);
     setSerialError(val.length > 0 && val.length < 16 ? `${val.length}/16 digits` : '');
   };
