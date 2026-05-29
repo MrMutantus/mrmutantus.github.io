@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { StoredWeapon } from '../types';
 import { SERIAL_PATTERN } from '../patterns';
+import { useModalA11y } from '../hooks/useModalA11y';
 import knownWeaponTypes from '../weaponTypes.json';
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function AddWeaponModal({ onAdd, onClose }: Props) {
+  const modalRef = useModalA11y(onClose);
   const [weaponType, setWeaponType] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
   const [notes, setNotes] = useState('');
@@ -36,10 +38,17 @@ export function AddWeaponModal({ onAdd, onClose }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-weapon-title"
+        className="modal"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>Add Weapon</h2>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <h2 id="add-weapon-title">Add Weapon</h2>
+          <button className="btn-close" aria-label="Close" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">

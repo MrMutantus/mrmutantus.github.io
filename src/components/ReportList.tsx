@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import type { LabReport } from '../types';
 import { HEX_ID_PATTERN } from '../patterns';
+import { MatchBadge } from './MatchBadge';
 
 interface Props {
   reports: LabReport[];
@@ -93,9 +94,7 @@ export const ReportList = memo(function ReportList({ reports, onSaveReportId }: 
               <code>{r.caseId1}</code>
               <span className="match-arrow">↔</span>
               <code>{r.caseId2}</code>
-              <span className={`match-badge ${r.result === 'MATCH' ? 'match' : 'no-match'}`}>
-                {r.result === 'MATCH' ? 'MATCH ✓' : r.result === 'DIFFERENT_WEAPON' ? 'DIFFERENT WEAPON ✗' : 'NO MATCH ✗'}
-              </span>
+              <MatchBadge result={r.result} />
             </span>
             <span className="report-card-toggle">{expanded.has(r.id) ? '▲' : '▼'}</span>
           </div>

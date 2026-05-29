@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { CartridgeCase, LabReport, StoredWeapon } from '../types';
 import { HEX_ID_PATTERN, SERIAL_PATTERN } from '../patterns';
+import { useModalA11y } from '../hooks/useModalA11y';
+import { MatchBadge } from './MatchBadge';
 import knownWeaponTypes from '../weaponTypes.json';
 
 interface Props {
@@ -15,6 +17,7 @@ interface Props {
 }
 
 export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave, onDelete, onUpdateId, onClose }: Props) {
+  const modalRef = useModalA11y(onClose);
   const assignedWeapon = caseItem.weaponId ? weapons.find(w => w.id === caseItem.weaponId) : undefined;
   const [weaponType, setWeaponType] = useState(caseItem.weaponType);
   const [serialNumber, setSerialNumber] = useState(caseItem.serialNumber);
@@ -62,9 +65,16 @@ export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave,
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="evidence-detail-title"
+        className="modal"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>
+          <h2 id="evidence-detail-title">
             {canEditId ? (
               <input
                 className={`id-edit-input${idError ? ' input-error' : ''}`}
@@ -76,7 +86,7 @@ export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave,
               <code>{caseItem.id}</code>
             )}
           </h2>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <button className="btn-close" aria-label="Close" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">
@@ -132,9 +142,7 @@ export function EvidenceDetailModal({ caseItem, cases, reports, weapons, onSave,
                     <code>{caseItem.id}</code>
                     <span className="match-arrow">↔</span>
                     <code>{otherId}</code>
-                    <span className={`match-badge ${r.result === 'MATCH' ? 'match' : 'no-match'}`}>
-                      {r.result === 'MATCH' ? 'MATCH ✓' : r.result === 'DIFFERENT_WEAPON' ? 'DIFFERENT WEAPON ✗' : 'NO MATCH ✗'}
-                    </span>
+                    <MatchBadge result={r.result} />
                   </div>
                 );
               })}

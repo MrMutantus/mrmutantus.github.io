@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { parseLabReport } from '../parser';
 import type { ParsedReport } from '../types';
 import { HEX_ID_PATTERN } from '../patterns';
+import { useModalA11y } from '../hooks/useModalA11y';
+import { matchResultLabel } from '../matchResult';
 
 interface Props {
   onImport: (reportId: string | undefined, parsed: ParsedReport, rawText: string) => void;
@@ -9,6 +11,7 @@ interface Props {
 }
 
 export function ImportReportModal({ onImport, onClose }: Props) {
+  const modalRef = useModalA11y(onClose);
   const [text, setText] = useState('');
   const [reportId, setReportId] = useState('');
   const [reportIdError, setReportIdError] = useState('');
@@ -28,10 +31,17 @@ export function ImportReportModal({ onImport, onClose }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal modal-wide" onClick={e => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-report-title"
+        className="modal modal-wide"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>Import Lab Report</h2>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <h2 id="import-report-title">Import Lab Report</h2>
+          <button className="btn-close" aria-label="Close" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">
@@ -64,7 +74,7 @@ export function ImportReportModal({ onImport, onClose }: Props) {
                   <div>Weapon 1: {parsed.weaponType1 || '—'}</div>
                   <div>Weapon 2: {parsed.weaponType2 || '—'}</div>
                   <div className={parsed.result === 'MATCH' ? 'match-text' : 'no-match-text'}>
-                    Result: {parsed.result === 'MATCH' ? 'MATCH ✓' : parsed.result === 'DIFFERENT_WEAPON' ? 'DIFFERENT WEAPON ✗' : 'NO MATCH ✗'}
+                    Result: {matchResultLabel(parsed.result)}
                   </div>
                 </>
               ) : (

@@ -133,43 +133,49 @@ export default function App() {
       </header>
 
       <div className="scenario-bar">
-        <div className="scenario-tabs-scroll" ref={tabScrollRef}>
-          {scenarios.map(s => (
-            <div
-              key={s.id}
-              role="tab"
-              tabIndex={0}
-              className={`scenario-tab${s.id === activeScenarioId ? ' scenario-tab-active' : ''}`}
-              onClick={() => handleSelectScenario(s.id)}
-              onDoubleClick={() => handleStartRename(s.id, s.name)}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleSelectScenario(s.id); }}
-            >
-              {renamingId === s.id ? (
-                <input
-                  className="scenario-tab-input"
-                  value={renameDraft}
-                  autoFocus
-                  onChange={e => setRenameDraft(e.target.value)}
-                  onKeyDown={e => {
-                    e.stopPropagation();
-                    if (e.key === 'Enter') handleRenameCommit();
-                    if (e.key === 'Escape') handleRenameCancel();
-                  }}
-                  onBlur={handleRenameCommit}
-                  onClick={e => e.stopPropagation()}
-                />
-              ) : (
-                <span className="scenario-tab-name">{s.name}</span>
-              )}
-              <button
-                className="scenario-tab-close"
-                title="Delete scenario"
-                onClick={e => { e.stopPropagation(); handleDeleteRequest(s.id); }}
+        <div role="tablist" aria-label="Scenarios" className="scenario-tabs-scroll" ref={tabScrollRef}>
+          {scenarios.map(s => {
+            const isActive = s.id === activeScenarioId;
+            return (
+              <div
+                key={s.id}
+                role="tab"
+                tabIndex={isActive ? 0 : -1}
+                aria-selected={isActive}
+                className={`scenario-tab${isActive ? ' scenario-tab-active' : ''}`}
+                onClick={() => handleSelectScenario(s.id)}
+                onDoubleClick={() => handleStartRename(s.id, s.name)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleSelectScenario(s.id); }}
               >
-                ×
-              </button>
-            </div>
-          ))}
+                {renamingId === s.id ? (
+                  <input
+                    className="scenario-tab-input"
+                    value={renameDraft}
+                    autoFocus
+                    aria-label="Rename scenario"
+                    onChange={e => setRenameDraft(e.target.value)}
+                    onKeyDown={e => {
+                      e.stopPropagation();
+                      if (e.key === 'Enter') handleRenameCommit();
+                      if (e.key === 'Escape') handleRenameCancel();
+                    }}
+                    onBlur={handleRenameCommit}
+                    onClick={e => e.stopPropagation()}
+                  />
+                ) : (
+                  <span className="scenario-tab-name">{s.name}</span>
+                )}
+                <button
+                  className="scenario-tab-close"
+                  aria-label={`Delete scenario ${s.name}`}
+                  title="Delete scenario"
+                  onClick={e => { e.stopPropagation(); handleDeleteRequest(s.id); }}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
         <button className="scenario-add-btn" onClick={handleAddScenario} title="Add scenario">+</button>
         <div className="scenario-bar-actions">

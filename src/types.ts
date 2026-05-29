@@ -8,6 +8,11 @@ export interface StoredWeapon {
   suspect?: string;
 }
 
+// id is a 7-hex-digit string prefixed with `#` (e.g. "#a4f2871"). The 28-bit
+// space gives ~16K cases before a 50% birthday collision; collisions are
+// silently treated as the same hull, so duplicates inside a scenario are
+// considered a user data-entry error rather than something the app guards
+// against.
 export interface CartridgeCase {
   id: string;
   weaponId?: string;

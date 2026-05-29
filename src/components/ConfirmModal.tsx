@@ -1,3 +1,5 @@
+import { useModalA11y } from '../hooks/useModalA11y';
+
 interface Props {
   message: string;
   confirmLabel?: string;
@@ -13,15 +15,23 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const ref = useModalA11y(onCancel);
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal modal-confirm" onClick={e => e.stopPropagation()}>
+      <div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+        className="modal modal-confirm"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>Confirm</h2>
-          <button className="btn-close" onClick={onCancel}>✕</button>
+          <h2 id="confirm-modal-title">Confirm</h2>
+          <button className="btn-close" aria-label="Close" onClick={onCancel}>✕</button>
         </div>
         <div className="modal-body">
-          <p style={{ margin: 0 }}>{message}</p>
+          <p className="modal-message">{message}</p>
         </div>
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onCancel}>{cancelLabel}</button>

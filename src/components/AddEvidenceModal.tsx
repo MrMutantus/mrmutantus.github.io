@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CartridgeCase } from '../types';
 import { HEX_ID_PATTERN, SERIAL_PATTERN } from '../patterns';
+import { useModalA11y } from '../hooks/useModalA11y';
 import knownWeaponTypes from '../weaponTypes.json';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function AddEvidenceModal({ cases, initialWeaponId, initialWeaponType, initialSerialNumber, onAdd, onClose }: Props) {
+  const modalRef = useModalA11y(onClose);
   const [id, setId] = useState('');
   const [weaponType, setWeaponType] = useState(initialWeaponType ?? '');
   const [serialNumber, setSerialNumber] = useState(initialSerialNumber ?? '');
@@ -55,10 +57,17 @@ export function AddEvidenceModal({ cases, initialWeaponId, initialWeaponType, in
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-evidence-title"
+        className="modal"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>Add Hull</h2>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <h2 id="add-evidence-title">Add Hull</h2>
+          <button className="btn-close" aria-label="Close" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">

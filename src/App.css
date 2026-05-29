@@ -439,6 +439,10 @@
   gap: 16px;
 }
 
+.modal-message {
+  margin: 0;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;

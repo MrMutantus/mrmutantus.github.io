@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Weapon } from '../types';
 import { generateReport } from '../report';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface Props {
   weapons: Weapon[];
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function SummaryReportModal({ weapons, onClose }: Props) {
+  const modalRef = useModalA11y(onClose);
   const [copied, setCopied] = useState(false);
   const text = useMemo(() => generateReport(weapons), [weapons]);
 
@@ -23,10 +25,17 @@ export function SummaryReportModal({ weapons, onClose }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal modal-wide" onClick={e => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="summary-modal-title"
+        className="modal modal-wide"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h2>Forensics Report</h2>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <h2 id="summary-modal-title">Forensics Report</h2>
+          <button className="btn-close" aria-label="Close" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">
