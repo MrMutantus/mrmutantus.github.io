@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import type { LabReport } from '../types';
 
 interface Props {
@@ -8,44 +8,45 @@ interface Props {
 
 const REPORT_ID_RE = /^#[0-9a-f]{7}$/i;
 
-export function ReportList({ reports, onSaveReportId }: Props) {
+export const ReportList = memo(function ReportList({ reports, onSaveReportId }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [draftError, setDraftError] = useState('');
 
-  const toggle = (id: string) => {
+  const sorted = useMemo(
+    () => [...reports].sort((a, b) => new Date(b.importedAt).getTime() - new Date(a.importedAt).getTime()),
+    [reports],
+  );
+
+  const toggle = useCallback((id: string) => {
     setExpanded(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const startEdit = (r: LabReport) => {
+  const startEdit = useCallback((r: LabReport) => {
     setEditingId(r.id);
     setDraft(r.reportId ?? '');
     setDraftError('');
-  };
+  }, []);
 
-  const handleDraftChange = (val: string) => {
+  const handleDraftChange = useCallback((val: string) => {
     setDraft(val);
     setDraftError(val && !REPORT_ID_RE.test(val.trim()) ? 'Format: #xxxxxxx (7 hex chars)' : '');
-  };
+  }, []);
 
-  const commitEdit = () => {
+  const commitEdit = useCallback(() => {
     if (draftError) return;
     const trimmed = draft.trim().toLowerCase();
     onSaveReportId(editingId!, trimmed || undefined);
     setEditingId(null);
-  };
+  }, [draft, draftError, editingId, onSaveReportId]);
 
-  const cancelEdit = () => setEditingId(null);
-
-  const sorted = [...reports].sort(
-    (a, b) => new Date(b.importedAt).getTime() - new Date(a.importedAt).getTime(),
-  );
+  const cancelEdit = useCallback(() => setEditingId(null), []);
 
   if (sorted.length === 0) {
     return <p className="empty">No reports imported yet.</p>;
@@ -106,4 +107,4 @@ export function ReportList({ reports, onSaveReportId }: Props) {
       ))}
     </div>
   );
-}
+});

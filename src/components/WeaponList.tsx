@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { CartridgeCase, StoredWeapon, Weapon } from '../types';
+import { useWeaponEdit } from '../hooks/useWeaponEdit';
 import knownWeaponTypes from '../weaponTypes.json';
 
 interface Props {
@@ -10,55 +11,24 @@ interface Props {
   onDeleteWeapon: (weaponId: string) => void;
 }
 
-const SERIAL_RE = /^\d{0,16}$/;
+function toggle(set: Set<string>, setter: (s: Set<string>) => void, id: string) {
+  const next = new Set(set);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  setter(next);
+}
 
-export function WeaponList({ weapons, unassignedCases, onSaveWeapon, onAddHull, onDeleteWeapon }: Props) {
+export const WeaponList = memo(function WeaponList({ weapons, unassignedCases, onSaveWeapon, onAddHull, onDeleteWeapon }: Props) {
   const [expandedWeapons, setExpandedWeapons] = useState<Set<string>>(new Set());
   const [expandedEvidence, setExpandedEvidence] = useState<Set<string>>(new Set());
   const [expandedReports, setExpandedReports] = useState<Set<string>>(new Set());
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<StoredWeapon | null>(null);
-  const [serialError, setSerialError] = useState('');
+  const { editingId, draft, setDraft, serialError, startEdit, handleSerialChange, handleSave, handleCancel } =
+    useWeaponEdit(onSaveWeapon);
 
-  const toggle = (set: Set<string>, setter: (s: Set<string>) => void, id: string) => {
-    const next = new Set(set);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setter(next);
-  };
-
-  const startEdit = (e: React.MouseEvent, w: Weapon) => {
-    e.stopPropagation();
-    setEditingId(w.id);
-    setDraft({ id: w.id, weaponType: w.weaponType, serialNumber: w.serialNumber, notes: w.notes, suspect: w.suspect ?? '' });
-    setSerialError('');
-  };
-
-  const handleSerialChange = (val: string) => {
-    if (!SERIAL_RE.test(val)) return;
-    setDraft(d => d ? { ...d, serialNumber: val } : d);
-    setSerialError(val.length > 0 && val.length < 16 ? `${val.length}/16 digits` : '');
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!draft) return;
-    if (draft.serialNumber.length > 0 && draft.serialNumber.length !== 16) {
-      setSerialError('Serial number must be exactly 16 digits');
-      return;
-    }
-    onSaveWeapon(draft);
-    setEditingId(null);
-    setDraft(null);
-  };
-
-  const handleCancel = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingId(null);
-    setDraft(null);
-    setSerialError('');
-  };
+  const toggleWeapon = useCallback((id: string) => toggle(expandedWeapons, setExpandedWeapons, id), [expandedWeapons]);
+  const toggleEvidence = useCallback((id: string) => toggle(expandedEvidence, setExpandedEvidence, id), [expandedEvidence]);
+  const toggleReports = useCallback((id: string) => toggle(expandedReports, setExpandedReports, id), [expandedReports]);
 
   if (weapons.length === 0 && unassignedCases.length === 0) {
     return <p className="empty">No weapons identified yet. Import a lab report or add a weapon to get started.</p>;
@@ -70,7 +40,7 @@ export function WeaponList({ weapons, unassignedCases, onSaveWeapon, onAddHull, 
         <div key={w.id} className="weapon-card">
           <button
             className="weapon-card-header"
-            onClick={() => toggle(expandedWeapons, setExpandedWeapons, w.id)}
+            onClick={() => toggleWeapon(w.id)}
           >
             <span className="weapon-serial">
               {w.serialNumber
@@ -162,7 +132,7 @@ export function WeaponList({ weapons, unassignedCases, onSaveWeapon, onAddHull, 
               <div className="weapon-section">
                 <button
                   className="weapon-section-toggle"
-                  onClick={() => toggle(expandedEvidence, setExpandedEvidence, w.id)}
+                  onClick={() => toggleEvidence(w.id)}
                 >
                   <span>Hulls ({w.cases.length})</span>
                   <span className="report-card-toggle">{expandedEvidence.has(w.id) ? '▲' : '▼'}</span>
@@ -200,7 +170,7 @@ export function WeaponList({ weapons, unassignedCases, onSaveWeapon, onAddHull, 
               <div className="weapon-section">
                 <button
                   className="weapon-section-toggle"
-                  onClick={() => toggle(expandedReports, setExpandedReports, w.id)}
+                  onClick={() => toggleReports(w.id)}
                 >
                   <span>Reports ({w.reports.length})</span>
                   <span className="report-card-toggle">{expandedReports.has(w.id) ? '▲' : '▼'}</span>
@@ -260,4 +230,4 @@ export function WeaponList({ weapons, unassignedCases, onSaveWeapon, onAddHull, 
       )}
     </div>
   );
-}
+});

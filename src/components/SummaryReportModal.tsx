@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Weapon } from '../types';
 import { generateReport } from '../report';
 
@@ -9,13 +9,18 @@ interface Props {
 
 export function SummaryReportModal({ weapons, onClose }: Props) {
   const [copied, setCopied] = useState(false);
-  const text = generateReport(weapons);
+  const text = useMemo(() => generateReport(weapons), [weapons]);
 
-  const handleCopy = async () => {
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(id);
+  }, [copied]);
+
+  const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  }, [text]);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
