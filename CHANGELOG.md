@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.3...v1.0.4) (2026-05-29)
+
+
+### Bug Fixes
+
+* **test:** replace file fixtures with inline test data ([290fde7](https://github.com/MrMutantus/mrmutantus.github.io/commit/290fde7305ff764f45d7e58cd8cd3e9647cdee83))
+
 ## [1.0.3](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.2...v1.0.3) (2026-05-29)
 
 
