@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.2...v1.0.3) (2026-05-29)
+
+
+### Bug Fixes
+
+* harden data layer (parser, storage, import) ([228a6cb](https://github.com/MrMutantus/mrmutantus.github.io/commit/228a6cb778c4b2f81e78618f1159b76713c42c29))
+
 ## [1.0.2](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.1...v1.0.2) (2026-05-28)
 
 
