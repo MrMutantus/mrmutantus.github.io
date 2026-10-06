@@ -8,6 +8,7 @@ interface Props {
 
 export function WeaponReportsSection({ weapon }: Props) {
   const [expanded, setExpanded] = useState(false);
+
   return (
     <div className="weapon-section">
       <button

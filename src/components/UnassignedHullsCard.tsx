@@ -7,6 +7,7 @@ interface Props {
 
 export const UnassignedHullsCard = memo(function UnassignedHullsCard({ cases }: Props) {
   if (cases.length === 0) return null;
+
   return (
     <div className="weapon-card weapon-card-unassigned">
       <div className="weapon-card-header weapon-card-header-unassigned">

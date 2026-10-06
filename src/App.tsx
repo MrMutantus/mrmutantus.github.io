@@ -221,6 +221,7 @@ export default function App() {
               <WeaponList
                 weapons={weapons}
                 unassignedCases={unassignedCases}
+                reports={reports}
                 onSaveWeapon={saveWeapon}
                 onAddHull={setAddHullForWeapon}
                 onDeleteWeapon={handleRequestDeleteWeapon}
