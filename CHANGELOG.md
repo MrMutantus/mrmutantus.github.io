@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.4...v1.1.0) (2026-10-09)
+
+
+### Bug Fixes
+
+* **versions:** update package-lock ([e3533a3](https://github.com/MrMutantus/mrmutantus.github.io/commit/e3533a31d8ce7a9ed0c9c0d4bb0c22ee70777f45))
+
+
+### Features
+
+* enhance weapon management with cross-weapon suggestions and report integration ([#1](https://github.com/MrMutantus/mrmutantus.github.io/issues/1)) ([7afd929](https://github.com/MrMutantus/mrmutantus.github.io/commit/7afd929c24f545d51b3ca010e76bffcb36433448))
+
 ## [1.0.4](https://github.com/MrMutantus/mrmutantus.github.io/compare/v1.0.3...v1.0.4) (2026-05-29)
 
 
